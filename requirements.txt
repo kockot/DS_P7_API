@@ -6,4 +6,4 @@ xgboost==1.7.6
 mlflow==2.4.1
 mlflow-export-import==1.2.0
 cloudpickle==2.2.1
-pytest-flask=1.2.0
+pytest-flask==1.2.0
