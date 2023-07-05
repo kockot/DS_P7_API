@@ -7,3 +7,4 @@ cloudpickle==2.2.1
 pytest-flask==1.2.0
 ipython==8.12.2
 matplotlib==3.7.1
+opencv-python-headless=4.8.0.74
