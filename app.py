@@ -10,7 +10,7 @@ import shap
 
 
 
-def create_app(config):
+def create_app(config={"TESTING": False}):
     api = Flask(__name__)
     api.config.from_object(config)
 
