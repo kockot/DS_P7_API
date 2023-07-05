@@ -23,7 +23,7 @@ def create_app(config):
 
     print("Initialisation débutée")
     model = pickle.load(open("xgb_1/model.pkl", "rb"))
-    X = pd.read_parquet("../working/df_application_test.parquet")
+    X = pd.read_parquet("assets/df_application_test.parquet")
     explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
     api_initialized = True
     print("Initialisation terminée")
