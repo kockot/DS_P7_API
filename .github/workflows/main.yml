@@ -8,6 +8,11 @@ on:
   push:
     branches: [main, master]
     
+env:
+  parquet_get_login: $parquet_get_login
+  parquet_get_password: $parquet_get_PASSWORD
+  parquet_get_url: $parquet_get_url
+
 # A workflow run consists of one or more jobs that can be executed either sequentially or concurrently.
 jobs:
   build-and-test:
