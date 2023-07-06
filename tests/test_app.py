@@ -87,7 +87,7 @@ def test_security_token_not_provided(client):
     assert data["message"] == "Jeton d'authentification non fourni"
 
 def test_wrong_security_token(client):
-    response = client.get("/predict/456122?max_display=200"headers={"Authorization": "nordine"})
+    response = client.get("/predict/456122?max_display=200", headers={"Authorization": "nordine"})
     data = json.loads(response.data)
     #print(data)
     assert data["success"] == False
