@@ -24,6 +24,9 @@ def create_app(config={"TESTING": False}):
     print("Initialisation débutée")
     model = pickle.load(open("xgb_1/model.pkl", "rb"))
 
+    SECURITY_TOKEN = os.environ.get("security_token")
+    assert SECURITY_TOKEN is not None
+
     if not os.path.isdir("assets"):
         os.mkdir("assets")
 
@@ -93,6 +96,21 @@ def create_app(config={"TESTING": False}):
                 "message": "API non intialisée"
             }
             
+        headers = request.headers
+        bearer = headers.get('Authorization')    # Bearer YourTokenHere
+        if bearer is None:
+            return {
+                "success": False,
+                "message": "Jeton d'authentification non fourni"
+            }
+
+        token = bearer.split()[1]
+        if token is None or token!=SECURITY_TOKEN:
+            return {
+                "success": False,
+                "message": "Echec de l'authentification"
+            }
+
         if sk_id_curr.strip()=="":
             return {
                 "success": False,
