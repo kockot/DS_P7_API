@@ -108,7 +108,7 @@ def create_app(config={"TESTING": False}):
         if token is None or token!=SECURITY_TOKEN:
             return {
                 "success": False,
-                "message": "Echec de l'authentification"
+                "message": "Echec de l'authentification du jeton"
             }
 
         if sk_id_curr.strip()=="":
