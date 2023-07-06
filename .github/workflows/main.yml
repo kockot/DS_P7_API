@@ -1,4 +1,4 @@
-name: CI/CD projet7
+name: CI/CD DS_P7_API
 
 # Controls when the workflow will run
 on:
@@ -6,8 +6,6 @@ on:
   
   # Activates the workflow; then there is a push to the main or master branch
   push:
-    paths:
-      - projet7/**
     branches: [main, master]
     
 # A workflow run consists of one or more jobs that can be executed either sequentially or concurrently.
