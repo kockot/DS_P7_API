@@ -1,6 +1,6 @@
 import pytest
 
-from api import create_app
+from app import create_app
 import json
 import base64
 import cv2
