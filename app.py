@@ -7,8 +7,8 @@ from matplotlib import pyplot
 import base64
 import pickle
 import shap
-
-
+import requests
+import os
 
 def create_app(config={"TESTING": False}):
     api = Flask(__name__)
@@ -23,8 +23,27 @@ def create_app(config={"TESTING": False}):
 
     print("Initialisation débutée")
     model = pickle.load(open("xgb_1/model.pkl", "rb"))
+
+    if not os.path.isdir("assets"):
+        os.mkdir("assets")
+
+    if not os.path.exists("assets/df_application_test.parquet"):
+        LOGIN = os.environ.get("parquet_get_login")
+        assert LOGIN is not None
+        PASSWORD = os.environ.get("parquet_get_password")
+        assert PASSWORD is not None
+        URL = os.environ.get("parquet_get_url")
+        assert URL is not None
+        print("Téléchargement du fichier parquet")
+        response = requests.get(url = URL, auth=(LOGIN,PASSWORD))
+        with open("assets/df_application_test.parquet", "wb") as parquet_file:
+            parquet_file.write(response.content)
+        print("Fichier téléchargé")
+
     X = pd.read_parquet("assets/df_application_test.parquet")
+
     explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
+
     api_initialized = True
     print("Initialisation terminée")
 
