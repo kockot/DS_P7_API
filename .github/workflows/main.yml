@@ -28,5 +28,6 @@ jobs:
           parquet_get_login: ${{secrets.PARQUET_GET_LOGIN}}
           parquet_get_password: ${{secrets.PARQUET_GET_PASSWORD}}
           parquet_get_url: ${{secrets.PARQUET_GET_URL}}
+          security_token: ${{secrets.SECURITY_TOKEN}}
         run: |
           pytest
