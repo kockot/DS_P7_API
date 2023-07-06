@@ -1,4 +1,5 @@
 mlruns
 .ipynb_checkpoints
 assets
+.env
 
