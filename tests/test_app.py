@@ -5,6 +5,7 @@ import json
 import base64
 import cv2
 import numpy as np
+import os
 
 SECURITY_TOKEN = os.environ.get("security_token")
 assert SECURITY_TOKEN is not None
