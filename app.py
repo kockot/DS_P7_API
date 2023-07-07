@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from time import sleep
 import pandas as pd
 import numpy as np
@@ -9,12 +9,20 @@ import pickle
 import shap
 import requests
 import os
+from flask_wtf.csrf import CSRFProtect
 
-def create_app(config={"TESTING": False}):
+def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     api = Flask(__name__)
+
     api.config.from_object(config)
 
-    
+    SECRET_KEY = os.urandom(32)
+    api.config['SECRET_KEY'] = SECRET_KEY
+    api.config['WTF_CSRF_SECRET_KEY'] = SECRET_KEY
+
+    csrf = CSRFProtect()
+    csrf.init_app(api)
+
     api_initialized = False
     model = None
     X = None
@@ -83,12 +91,33 @@ def create_app(config={"TESTING": False}):
             }
 
 
+    def get_prediction(sk_id_curr, max_display):
+        explanation = get_explanation(sk_id_curr,return_base64=True, show_plot=False, max_display=max_display)
+        if explanation["success"]==False:
+            return explanation
+    
+        
+        proba = model.predict_proba( X.loc[X["SK_ID_CURR"]==sk_id_curr].drop(columns="SK_ID_CURR") )[0]
+        if proba[1]>threshold:
+            explanation["conclusion"] = 1
+        else:
+            explanation["conclusion"] = 0
+    
+        explanation["conclusion_proba"] = [np.float64(proba[0]), np.float64(proba[1])]
+        return jsonify(explanation)
+
+
     @api.route("/health")
+    @csrf.exempt
     def health():
         return f"api_initialized={api_initialized}"
 
 
-    @api.route("/sk_id_curr")
+    @api.route("/application")
+    def application():
+        return render_template('search_form.html')
+
+    @api.route("/sk_id_curr", methods = ["POST"])
     def list_sk_id_curr():
         if api_initialized==False:
             return {
@@ -96,21 +125,6 @@ def create_app(config={"TESTING": False}):
                 "message": "API non intialisée"
             }
         
-        headers = request.headers
-        bearer = headers.get('Authorization')    # Bearer YourTokenHere
-        if bearer is None:
-            return {
-                "success": False,
-                "message": "Jeton d'authentification non fourni"
-            }
-
-        token = bearer.split()[1]
-        if token is None or token!=SECURITY_TOKEN:
-            return {
-                "success": False,
-                "message": "Echec de l'authentification du jeton"
-            }
-            
         return {
             "success": True,
             "data": X.loc[:, "SK_ID_CURR"].to_list()
@@ -118,6 +132,7 @@ def create_app(config={"TESTING": False}):
 
 
     @api.route('/predict/<sk_id_curr>', methods = ['GET'])
+    @csrf.exempt
     def predict(sk_id_curr):
         if api_initialized==False:
             return {
@@ -153,26 +168,50 @@ def create_app(config={"TESTING": False}):
             }
     
         sk_id_curr = int(sk_id_curr)
-    
-        max_display = int(request.args.get('max_display'))
-    
-        explanation = get_explanation(sk_id_curr,return_base64=True, show_plot=False, max_display=max_display)
-        if explanation["success"]==False:
-            return explanation
-    
-        
-        proba = model.predict_proba( X.loc[X["SK_ID_CURR"]==sk_id_curr].drop(columns="SK_ID_CURR") )[0]
-        if proba[1]>threshold:
-            explanation["conclusion"] = 1
+        if request.args.get('max_display') is not None:
+            max_display = int(request.args.get('max_display'))
         else:
-            explanation["conclusion"] = 0
+            max_display = 25
+            
+        return get_prediction(sk_id_curr, max_display)
+
+
+    @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
+    def predict_POST(sk_id_curr):
+        if api_initialized==False:
+            return {
+                "success": False,
+                "message": "API non intialisée"
+            }
+            
+        if sk_id_curr.strip()=="":
+            return {
+                "success": False,
+                "message": "SK_ID_CURR non renseigné"
+            }
+            
+        if not sk_id_curr.isdigit():
+            return {
+                "success": False,
+                "message": "SK_ID_CURR n'est pas un entier naturel"
+            }
     
-        explanation["conclusion_proba"] = [np.float64(proba[0]), np.float64(proba[1])]
-        return jsonify(explanation)
+        sk_id_curr = int(sk_id_curr)
+        data = request.json
+        print(data)
+        if data.get('max_display') is not None:
+            max_display = int(data.get('max_display'))
+        else:
+            max_display = 25
+            
+        return get_prediction(sk_id_curr, max_display)
+
 
     return api
 
 
+
+
 if __name__ == "__main__":
     api = create_app({"TESTING": False})
-    api.run(host='0.0.0.0', port=12080)
+    api.run(host='0.0.0.0', port=8000)

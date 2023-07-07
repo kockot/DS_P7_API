@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container-xxl p-3">
+        <div class="row">
+            <div class="col col-md-5 col-lg-4 col-xl-3">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="sk_id_curr" placeholder="1000001" list="datalistOptions">
+                    <label for="sk_id_curr">N° demande</label>
+                </div>
+                <datalist id="datalistOptions">
+                </datalist>
+            </div>
+            <div class="col col col-md-5 col-lg-5">
+                <input type="range" class="form-range" min="1" max="512" step="1" id="max_display" value="25">
+                <label for="max_display" class="form-label w-100 text-center" id="label_max_display">N° de paramètres à expliquer: 25</label>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary mb-3" id="search_btn">Chercher</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-secondary mb-3" id="reset_btn">Effacer</button>
+            </div>
+        </div>
+        <div class="row" id="result1">
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade " id="wait_modal" data-bs-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div style="width: 4rem; height: 4rem;">&nbsp;</div>
+                    <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
+                    </div>
+                    <div style="width: 4rem; height: 4rem;">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script>
+        const waitModal = new bootstrap.Modal('#wait_modal');
+        waitModal.hide();
+
+        let arr_sk_id_curr = [];
+        document.getElementById("max_display").addEventListener("change", function(e) {
+            document.getElementById("label_max_display").innerText = "N° de paramètres à expliquer: " + document.getElementById("max_display").value;
+        });
+        document.getElementById("max_display").addEventListener("input", function(e) {
+            document.getElementById("label_max_display").innerText = "N° de paramètres à expliquer: " + document.getElementById("max_display").value;
+        });
+        document.getElementById("sk_id_curr").addEventListener("keyup", e => {
+            let q = document.getElementById("sk_id_curr").value.trim();
+            if (q=="") {
+                document.getElementById("datalistOptions").innerHTML = arr_sk_id_curr.map(e => `<option value="${e}">`).join("");
+            } else {
+                let tmp = arr_sk_id_curr.filter(e => e.startsWith(q));
+                document.getElementById("datalistOptions").innerHTML = tmp.map(e => `<option value="${e}">`).join("");
+            }
+        });
+
+        document.getElementById("search_btn").addEventListener("click", function(e) {
+            let csrf_token = "{{ csrf_token() }}";
+            let payload = {
+                "csrf_token": csrf_token,
+                "max_display": document.getElementById("max_display").value
+            };
+            let header = {   'content-type': 'application/json','accept': 'application/json',"X-CSRFToken": csrf_token}
+            waitModal.show();
+            fetch(
+                "/predict2/"+document.getElementById("sk_id_curr").value.trim(), 
+                {
+                  method: "POST",
+                  headers: header ,
+                  body:JSON.stringify(payload),
+                  credentials: 'include',
+                })
+                .then(function(res) {
+                    waitModal.hide();
+                    return res.json();
+                }).then(function(data) {
+                    if (data.success) {
+
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    waitModal.hide();
+                    alert(err);
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let csrf_token = "{{ csrf_token() }}";
+            let payload = {
+                "csrf_token": csrf_token
+            };
+            let header = {   'content-type': 'application/json','accept': 'application/json',"X-CSRFToken": csrf_token}
+
+            fetch(
+                "/sk_id_curr", 
+                {
+                  method: "POST",
+                  headers: header ,
+                  body:JSON.stringify(payload),
+                  credentials: 'include',
+                })
+                .then(function(res) {
+                    return res.json();
+                }).then(function(data) {
+                    if (data.success) {
+                        arr_sk_id_curr = data.data.map(e => e.toString());
+
+                        //document.getElementById("datalistOptions").innerHTML = data.data.map(e => `<option value="${e}">`).join("");
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                  console.log(err);
+                });
+        }, false);
+    </script>
+  </body>
+</html>
