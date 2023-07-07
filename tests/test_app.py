@@ -33,6 +33,30 @@ def test_should_status_code_ok(client):
     assert response.data == b"api_initialized=True"
 
 
+def test_list_sk_id_curr_is_protected(client):
+    response = client.get("/sk_id_curr")
+    data = json.loads(response.data)
+    #print(data)
+    assert data["success"] == False
+    assert data["message"] == "Jeton d'authentification non fourni"
+
+
+def test_list_sk_id_curr_with_wrong_password(client):
+    response = client.get("/sk_id_curr", headers={"Authorization": "Bearer nordine"})
+    data = json.loads(response.data)
+    #print(data)
+    assert data["success"] == False
+    assert data["message"] == "Echec de l'authentification du jeton"
+
+
+def test_list_sk_id_curr(client):
+    response = client.get("/sk_id_curr", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
+    data = json.loads(response.data)
+    assert data["success"] == True
+    assert len(data["data"]) == 48744
+    assert data["data"][0:7] == [100001,100005,100013,100028,100038,100042,100057]
+
+
 def test_negative_sk_id_curr(client):
     response = client.get("/predict/-999999", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
     data = json.loads(response.data)
