@@ -117,7 +117,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     def application():
         return render_template('search_form.html')
 
-    @api.route("/sk_id_curr", methods = ["POST"])
+    @api.route("/sk_id_curr", methods = ["GET"])
     def list_sk_id_curr():
         if api_initialized==False:
             return {
@@ -198,7 +198,6 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     
         sk_id_curr = int(sk_id_curr)
         data = request.json
-        print(data)
         if data.get('max_display') is not None:
             max_display = int(data.get('max_display'))
         else:

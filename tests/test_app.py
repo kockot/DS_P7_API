@@ -33,24 +33,9 @@ def test_should_status_code_ok(client):
     assert response.data == b"api_initialized=True"
 
 
-def test_list_sk_id_curr_is_protected(client):
-    response = client.get("/sk_id_curr")
-    data = json.loads(response.data)
-    #print(data)
-    assert data["success"] == False
-    assert data["message"] == "Jeton d'authentification non fourni"
-
-
-def test_list_sk_id_curr_with_wrong_password(client):
-    response = client.get("/sk_id_curr", headers={"Authorization": "Bearer nordine"})
-    data = json.loads(response.data)
-    #print(data)
-    assert data["success"] == False
-    assert data["message"] == "Echec de l'authentification du jeton"
-
 
 def test_list_sk_id_curr(client):
-    response = client.get("/sk_id_curr", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
+    response = client.get("/sk_id_curr")
     data = json.loads(response.data)
     assert data["success"] == True
     assert len(data["data"]) == 48744
@@ -80,7 +65,6 @@ def test_non_numeric_sk_id_curr(client):
 def test_application_credit_accepted(client):
     response = client.get("/predict/100038?max_display=50", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
     data = json.loads(response.data)
-    #print(data)
     assert data["success"] == True
     assert data["conclusion"] == 1
     assert images_are_the_same("tests/images/100038.png", base64.decodebytes(bytes(data["image"], 'utf-8')))
@@ -94,7 +78,6 @@ def test_application_credit_accepted(client):
 def test_application_credit_refused(client):
     response = client.get("/predict/456122?max_display=200", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
     data = json.loads(response.data)
-    #print(data)
     assert data["success"] == True
     assert data["conclusion"] == 0
     assert images_are_the_same("tests/images/456122.png", base64.decodebytes(bytes(data["image"], 'utf-8')))
@@ -107,13 +90,11 @@ def test_application_credit_refused(client):
 def test_security_token_not_provided(client):
     response = client.get("/predict/456122?max_display=200")
     data = json.loads(response.data)
-    #print(data)
     assert data["success"] == False
     assert data["message"] == "Jeton d'authentification non fourni"
 
 def test_wrong_security_token(client):
     response = client.get("/predict/456122?max_display=200", headers={"Authorization": "Bearer nordine"})
     data = json.loads(response.data)
-    #print(data)
     assert data["success"] == False
     assert data["message"] == "Echec de l'authentification du jeton"

@@ -3,13 +3,23 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Simulation de réponse de crédit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
   </head>
   <body>
     <div class="container-xxl p-3">
         <div class="row">
-            <div class="col col-md-5 col-lg-4 col-xl-3">
+            <h2>Bienvenue sur le site de simulation de crédit</h2>
+            <p>
+                <ol>
+                    <li>Veuillez d'abord saisir l'identifiant de la demande de crédit.</li>
+                    <li>Réglez éventuellement le nombre de paramètres de la demande pour l'explication de résultat</li>
+                    <li>Cliquez sur le bouton <i>Chercher</i></li>
+                </ol>
+            </p>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-5 col-lg-4">
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="sk_id_curr" placeholder="1000001" list="datalistOptions">
                     <label for="sk_id_curr">N° demande</label>
@@ -17,18 +27,36 @@
                 <datalist id="datalistOptions">
                 </datalist>
             </div>
-            <div class="col col col-md-5 col-lg-5">
+            <div class="col-12 col-md-5 col-lg-6">
                 <input type="range" class="form-range" min="1" max="512" step="1" id="max_display" value="25">
                 <label for="max_display" class="form-label w-100 text-center" id="label_max_display">N° de paramètres à expliquer: 25</label>
             </div>
-            <div class="col-auto">
-                <button class="btn btn-primary mb-3" id="search_btn">Chercher</button>
+            <div class="col-12 col-md-1">
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" class="btn btn-primary mb-3" id="search_btn">Chercher</button>
+                </div>
             </div>
-            <div class="col-auto">
-                <button class="btn btn-secondary mb-3" id="reset_btn">Effacer</button>
+            <div class="col-12 col-md-1">
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-secondary mb-3" id="reset_btn">Effacer</button>
+                </div>
             </div>
         </div>
-        <div class="row" id="result1">
+        <div class="d-none" id="results">
+            <div class="row"><div id="conclusion"></div></div>
+            <div class="row"><div class="text-center">Répartition des probabilités</div></div>
+            <div class="row">
+                <div class="d-flex w-100 ">
+                    <div class="flex-fill bg-success text-white text-start" id="conclusion_perc_0">&nbsp;</div>
+                    <div class="flex-fill bg-danger text-white text-end" id="conclusion_perc_1">&nbsp;</div>
+                </div>
+                <div style="width:1px; position: absolute; left: 49%; border-left: solid 1px white;">&nbsp;</div>
+            </div>
+            <div class="row">
+                <div class="text-center">
+                    <img id="explanation" src="">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -71,6 +99,12 @@
         });
 
         document.getElementById("search_btn").addEventListener("click", function(e) {
+            if (document.getElementById("sk_id_curr").value.trim()==""){
+                alert("Id de la demande non renseigné");
+                return;
+            } 
+
+            document.getElementById("results").classList.remove("d-none");
             let csrf_token = "{{ csrf_token() }}";
             let payload = {
                 "csrf_token": csrf_token,
@@ -91,7 +125,18 @@
                     return res.json();
                 }).then(function(data) {
                     if (data.success) {
+                        if (data.conclusion==0){
+                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-success text-center" role="alert">Crédit accordé</div>`; 
+                        } else {
+                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-danger text-center" role="alert">Crédit refusé</div>`; 
+                        }
+                        document.getElementById("conclusion_perc_0").style.width = `${100*data.conclusion_proba[0]}%`; 
+                        document.getElementById("conclusion_perc_0").innerText = data.conclusion_proba[0];
+                        document.getElementById("conclusion_perc_1").style.width = `${100*data.conclusion_proba[1]}%`;
+                        document.getElementById("conclusion_perc_1").innerText = data.conclusion_proba[1];
+                        document.getElementById("explanation").src = "data:image/png;base64, " + data.image;
 
+                        document.getElementById("results").classList.remove("d-none");
                     } else {
                         alert(data.message);
                     }
@@ -100,6 +145,17 @@
                     waitModal.hide();
                     alert(err);
                 });
+        });
+
+        document.getElementById("reset_btn").addEventListener("click", function(e) {
+            document.getElementById("conclusion").innerHTML = "";
+            document.getElementById("conclusion_perc_0").innerText = "";
+            document.getElementById("conclusion_perc_1").innerText = "";
+            document.getElementById("explanation").src = "";
+            document.getElementById("results").classList.add("d-none");
+            document.getElementById("sk_id_curr").value = "";
+            document.getElementById("max_display").value = 25;
+            document.getElementById("max_display").dispatchEvent(new Event('input'));
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -112,9 +168,9 @@
             fetch(
                 "/sk_id_curr", 
                 {
-                  method: "POST",
+                  method: "GET",
                   headers: header ,
-                  body:JSON.stringify(payload),
+                  //body:JSON.stringify(payload),
                   credentials: 'include',
                 })
                 .then(function(res) {
