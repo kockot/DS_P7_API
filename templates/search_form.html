@@ -133,9 +133,9 @@
                 }).then(function(data) {
                     if (data.success) {
                         if (data.conclusion==0){
-                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-success text-center" role="alert">Crédit accordé</div>`; 
+                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-success text-center" role="alert"><h1>Crédit accordé</h1></div>`; 
                         } else {
-                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-danger text-center" role="alert">Crédit refusé</div>`; 
+                            document.getElementById("conclusion").innerHTML = `<div class="alert alert-danger text-center" role="alert"><h1>Crédit refusé</h1></div>`; 
                         }
                         document.getElementById("conclusion_perc_0").style.width = `${100*data.conclusion_proba[0]}%`; 
                         document.getElementById("conclusion_perc_0").innerText = data.conclusion_proba[0];
