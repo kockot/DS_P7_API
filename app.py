@@ -51,21 +51,25 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             parquet_file.write(response.content)
         print("Fichier téléchargé")
 
-    X = pd.read_parquet("assets/df_application_test.parquet")
-
+    X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
     explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
+
+    X = pd.read_parquet("assets/df_application_test.parquet", columns=["SK_ID_CURR"])
+    arr_sk_id_curr = X["SK_ID_CURR"].to_list()
+    del X
 
     api_initialized = True
     print("Initialisation terminée")
 
     
-    def get_explanation(sk_id_curr, max_display=50, return_base64=True, show_plot=False):
-        if X is None:
+    def get_explanation(X, sk_id_curr, max_display=50, return_base64=True, show_plot=False):
+        if not api_initialized:
             return {
                 "success": False,
                 "message": f"Données non chargées"
             }
             
+
         ind = X.loc[X["SK_ID_CURR"]==sk_id_curr].index
         if len(ind)==0:
             return {
@@ -91,8 +95,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             }
 
 
-    def get_prediction(sk_id_curr, max_display):
-        explanation = get_explanation(sk_id_curr,return_base64=True, show_plot=False, max_display=max_display)
+    def get_prediction(X, sk_id_curr, max_display):
+        explanation = get_explanation(X, sk_id_curr,return_base64=True, show_plot=False, max_display=max_display)
         if explanation["success"]==False:
             return explanation
     
@@ -127,7 +131,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         
         return {
             "success": True,
-            "data": X.loc[:, "SK_ID_CURR"].to_list()
+            "data": arr_sk_id_curr
         }
 
 
@@ -173,7 +177,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         else:
             max_display = 25
             
-        return get_prediction(sk_id_curr, max_display)
+        X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", sk_id_curr)])
+        return get_prediction(X, sk_id_curr, max_display)
 
 
     @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
@@ -198,12 +203,14 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     
         sk_id_curr = int(sk_id_curr)
         data = request.json
+        print(data)
         if data.get('max_display') is not None:
             max_display = int(data.get('max_display'))
         else:
             max_display = 25
-            
-        return get_prediction(sk_id_curr, max_display)
+
+        X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", sk_id_curr)])
+        return get_prediction(X, sk_id_curr, max_display)
 
 
     return api
