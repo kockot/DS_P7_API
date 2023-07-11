@@ -11,6 +11,8 @@ import os
 from flask_wtf.csrf import CSRFProtect
 import json
 import orjson
+import gc
+
 def get_df_feature_importances_shap_values(shap_values, features):
     '''
     Prints the feature importances based on SHAP values in an ordered way
@@ -79,6 +81,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
     X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
     explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
+    del X
 
     X = pd.read_parquet("assets/df_application_test.parquet", columns=["SK_ID_CURR"])
     arr_sk_id_curr = X["SK_ID_CURR"].to_list()
@@ -87,7 +90,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     api_initialized = True
     print("Initialisation terminée")
 
-    
+    gc.collect()
+
     def get_explanation(X, sk_id_curr, max_display=50, return_base64=True, show_plot=False):
         if not api_initialized:
             return {
@@ -227,7 +231,10 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             max_display = 25
             
         X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", sk_id_curr)])
-        return get_prediction(X, sk_id_curr, max_display)
+        ret = get_prediction(X, sk_id_curr, max_display)
+        del X
+        gc.collect()
+        return ret
 
 
     @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
@@ -259,8 +266,10 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             max_display = 25
 
         X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", sk_id_curr)])
-        return get_prediction(X, sk_id_curr, max_display)
-
+        ret = get_prediction(X, sk_id_curr, max_display)
+        del X
+        gc.collect()
+        return ret
 
     return api
 
