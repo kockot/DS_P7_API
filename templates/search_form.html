@@ -165,7 +165,6 @@
                   credentials: 'include',
                 })
                 .then(function(res) {
-                    setTimeout(function() { waitModal.hide(); });
                     return res.json();
                 }).then(function(data) {
                     if (data.success) {
@@ -233,9 +232,11 @@
                         }
 
                         document.getElementById("results").classList.remove("d-none");
+                        setTimeout(function() { waitModal.hide(); });
+
                     } else {
+                        setTimeout(function() { waitModal.hide(); });
                         alert(data.message);
-                        console.log("ready to hide");
                     }
                 })
                 .catch(err => {
