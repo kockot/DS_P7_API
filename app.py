@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, render_template
-from time import sleep
 import pandas as pd
 import numpy as np
 from io import BytesIO
@@ -10,6 +9,30 @@ import shap
 import requests
 import os
 from flask_wtf.csrf import CSRFProtect
+import json
+import orjson
+def get_df_feature_importances_shap_values(shap_values, features):
+    '''
+    Prints the feature importances based on SHAP values in an ordered way
+    shap_values -> The SHAP values calculated from a shap.Explainer object
+    features -> The name of the features, on the order presented to the explainer
+    '''
+    # Calculates the feature importance (mean absolute shap value) for each feature
+    importances = []
+    signs = []
+    for i in range(shap_values.values.shape[1]):
+        importances.append(np.mean(np.abs(shap_values.values[:, i])))
+        if shap_values.values[:, i]==0:
+            signs.append(0)
+        elif shap_values.values[:, i]>0:
+            signs.append(1)
+        else:
+            signs.append(-1)
+
+    df = pd.DataFrame({"feature_name": features, "importance": importances, "sign": signs})
+    df.sort_values("importance", ascending=False, inplace=True)
+    return df
+
 
 def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     api = Flask(__name__)
@@ -19,6 +42,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     SECRET_KEY = os.urandom(32)
     api.config['SECRET_KEY'] = SECRET_KEY
     api.config['WTF_CSRF_SECRET_KEY'] = SECRET_KEY
+
+    api.config["TEMPLATES_AUTO_RELOAD"] = True
 
     csrf = CSRFProtect()
     csrf.init_app(api)
@@ -51,6 +76,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             parquet_file.write(response.content)
         print("Fichier téléchargé")
 
+
     X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
     explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
 
@@ -80,7 +106,14 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         ind = ind[0]
         X_shap = np.array(X.iloc[ind:ind+1].drop(columns="SK_ID_CURR"), dtype=float)
         shap_values = explainer(X_shap)
-    
+        vals = np.abs(shap_values.values).mean(0)
+        feature_importance = pd.DataFrame(
+            list(zip(X.columns, vals)),
+            columns=['col_name', 'feature_importance_vals']
+        )
+        feature_importance.sort_values(by=['feature_importance_vals'], ascending=False, inplace=True)
+
+
         if show_plot:
             shap.plots.waterfall(shap_values[0], max_display=max_display, show=True)
             
@@ -89,11 +122,27 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             shap.plots.waterfall(shap_values[0], max_display=max_display, show=False)
             image = BytesIO()
             pyplot.savefig(image, format='png', bbox_inches='tight')
-            return {
+            ret = {
                 "success": True,
-                "image": base64.encodebytes(image.getvalue()).decode('utf-8')
+                "image": base64.encodebytes(image.getvalue()).decode('utf-8'),
+                "features_importances": []
             }
 
+            # let s continue with the features distributions
+            df_feat_impo = get_df_feature_importances_shap_values(shap_values, X.drop(columns="SK_ID_CURR").columns)
+            for i in range(0, max_display):
+                line = df_feat_impo.iloc[i]
+                fname = f"""assets/hist_json/{line["feature_name"].replace("/", "_")}.json"""
+                with open(fname) as json_f:
+                    decoded = json.load(json_f)
+                    ret["features_importances"].append({
+                        "name": str(line["feature_name"]),
+                        "value": float(X.loc[ind, line["feature_name"]]),
+                        "contribution": float(line["importance"] * line["sign"]),
+                        "hist_json_y": list(float(y) for y in decoded[0]),
+                        "hist_json_x": list(float(x) for x in decoded[1]),
+                    })
+            return ret
 
     def get_prediction(X, sk_id_curr, max_display):
         explanation = get_explanation(X, sk_id_curr,return_base64=True, show_plot=False, max_display=max_display)
@@ -107,8 +156,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         else:
             explanation["conclusion"] = 0
     
-        explanation["conclusion_proba"] = [np.float64(proba[0]), np.float64(proba[1])]
-        return jsonify(explanation)
+        explanation["conclusion_proba"] = [float(proba[0]), float(proba[1])]
+        return orjson.dumps(explanation)
 
 
     @api.route("/health")
@@ -203,7 +252,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     
         sk_id_curr = int(sk_id_curr)
         data = request.json
-        print(data)
+
         if data.get('max_display') is not None:
             max_display = int(data.get('max_display'))
         else:

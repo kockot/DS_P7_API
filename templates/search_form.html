@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Simulation de réponse de crédit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
   </head>
   <body>
     <div class="container-xxl p-3">
@@ -60,15 +61,51 @@
             </div>
             <div class="row"><h2 class="text-center">Explication</h2></div>
             <div class="row">
-                <div class="text-center">
-                    <img id="explanation" src="">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <a
+                        class="nav-link active" data-bs-toggle="tab" role="tab"
+                        aria-controls="expl_indiv" aria-selected="false"
+                        href="#expl_indiv">Explication individuelle</a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                        class="nav-link" data-bs-toggle="tab" role="tab"
+                        aria-controls="pos_indiv" aria-selected="false"
+                        href="#pos_indiv">Positionnement individuel</a>
+                  </li>
+                </ul>
+
+
+                <div class="tab-content" id="ex1-content">
+                    <div
+                        class="tab-pane fade show active"
+                        id="expl_indiv"
+                        role="tabpanel"
+                        ria-labelledby="expl_indiv"
+                    >
+                        <div class="text-center">
+                            <img id="explanation" src="">
+                        </div>
+                    </div>
+
+                    <div
+                        class="tab-pane fade show"
+                        id="pos_indiv"
+                        role="tabpanel"
+                        ria-labelledby="pos_indiv"
+                    >
+                        <div id="details_distrib" class="row">
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal -->
-    <div class="modal fade " id="wait_modal" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal " id="wait_modal" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-body text-center">
@@ -86,7 +123,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script>
         const waitModal = new bootstrap.Modal('#wait_modal');
-        waitModal.hide();
+        //waitModal.hide();
 
         let arr_sk_id_curr = [];
         document.getElementById("max_display").addEventListener("change", function(e) {
@@ -128,7 +165,7 @@
                   credentials: 'include',
                 })
                 .then(function(res) {
-                    waitModal.hide();
+                    setTimeout(function() { waitModal.hide(); });
                     return res.json();
                 }).then(function(data) {
                     if (data.success) {
@@ -143,14 +180,63 @@
                         document.getElementById("conclusion_perc_1").innerText = data.conclusion_proba[1];
                         document.getElementById("explanation").src = "data:image/png;base64, " + data.image;
 
+                        let html = "";
+                        for(let i=0; i<data.features_importances.length; i++) {
+                            html += `<div class="col col-md-6" id="div-feat_importance_${i}"></div>`
+                        }
+                        document.getElementById("details_distrib").innerHTML = html;
+
+                        for(let i=0; i<data.features_importances.length; i++) {
+                            let x = [];
+                            let colors = [];
+                            for (let j=0; j<data.features_importances[i].hist_json_x.length - 1; j++) {
+                                x.push(`${data.features_importances[i].hist_json_x[j]} - ${data.features_importances[i].hist_json_x[j+1]}`);
+                                if (data.features_importances[i].value>=data.features_importances[i].hist_json_x[j] &&
+                                    data.features_importances[i].value<data.features_importances[i].hist_json_x[j+1]) {
+                                    colors.push("#ff0000");
+                                } else {
+                                    colors.push("#0000FF");
+                                }
+                            }
+                            let trace1 = {
+                                x: x,
+                                y: data.features_importances[i].hist_json_y,
+                                name: data.features_importances[i].name,
+                                type: 'bar',
+                                marker: {
+                                    color: colors
+                                }
+                            };
+
+                            let layout = {
+                                title: `${data.features_importances[i].name}: ${data.features_importances[i].contribution}`,
+                                showlegend: false,
+                                xaxis: {
+                                    tickangle: -45,
+                                    showticklabels: false
+                                },
+                                yaxis: {
+                                    zeroline: false,
+                                    gridwidth: 2
+                                },
+                                bargap :0.0,
+                                width: "100%",
+                                responsive:true
+                            };
+                            let d = [trace1];
+                            Plotly.newPlot(`div-feat_importance_${i}`, d, layout);
+
+                        }
+
                         document.getElementById("results").classList.remove("d-none");
                     } else {
                         alert(data.message);
+                        console.log("ready to hide");
                     }
                 })
                 .catch(err => {
-                    waitModal.hide();
                     alert(err);
+                    setTimeout(function() { waitModal.hide(); });
                 });
         });
 
