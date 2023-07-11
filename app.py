@@ -239,6 +239,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
 
     @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
+    @csrf.exempt
     def predict_POST(sk_id_curr):
         if api_initialized==False:
             return {
