@@ -39,58 +39,59 @@ def get_df_feature_importances_shap_values(shap_values, features):
 def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
     api = Flask(__name__)
 
-    api.config.from_object(config)
+    with api.app_context():
+        api.config.from_object(config)
 
-    SECRET_KEY = os.urandom(32)
-    api.config['SECRET_KEY'] = SECRET_KEY
-    api.config['WTF_CSRF_SECRET_KEY'] = SECRET_KEY
+        SECRET_KEY = os.urandom(32)
+        api.config['SECRET_KEY'] = SECRET_KEY
+        api.config['WTF_CSRF_SECRET_KEY'] = SECRET_KEY
 
-    api.config["TEMPLATES_AUTO_RELOAD"] = True
+        api.config["TEMPLATES_AUTO_RELOAD"] = True
 
-    csrf = CSRFProtect()
-    csrf.init_app(api)
+        csrf = CSRFProtect()
+        csrf.init_app(api)
 
-    api_initialized = False
-    model = None
-    X = None
-    
-    threshold = 0.49
+        api_initialized = False
+        model = None
+        X = None
 
-    print("Initialisation débutée")
-    model = pickle.load(open("xgb_1/model.pkl", "rb"))
+        threshold = 0.49
 
-    SECURITY_TOKEN = os.environ.get("security_token")
-    assert SECURITY_TOKEN is not None
+        print("Initialisation débutée")
+        model = pickle.load(open("xgb_1/model.pkl", "rb"))
 
-    if not os.path.isdir("assets"):
-        os.mkdir("assets")
+        SECURITY_TOKEN = os.environ.get("security_token")
+        assert SECURITY_TOKEN is not None
 
-    if not os.path.exists("assets/df_application_test.parquet"):
-        LOGIN = os.environ.get("parquet_get_login")
-        assert LOGIN is not None
-        PASSWORD = os.environ.get("parquet_get_password")
-        assert PASSWORD is not None
-        URL = os.environ.get("parquet_get_url")
-        assert URL is not None
-        print("Téléchargement du fichier parquet")
-        response = requests.get(url = URL, auth=(LOGIN,PASSWORD))
-        with open("assets/df_application_test.parquet", "wb") as parquet_file:
-            parquet_file.write(response.content)
-        print("Fichier téléchargé")
+        if not os.path.isdir("assets"):
+            os.mkdir("assets")
+
+        if not os.path.exists("assets/df_application_test.parquet"):
+            LOGIN = os.environ.get("parquet_get_login")
+            assert LOGIN is not None
+            PASSWORD = os.environ.get("parquet_get_password")
+            assert PASSWORD is not None
+            URL = os.environ.get("parquet_get_url")
+            assert URL is not None
+            print("Téléchargement du fichier parquet")
+            response = requests.get(url = URL, auth=(LOGIN,PASSWORD))
+            with open("assets/df_application_test.parquet", "wb") as parquet_file:
+                parquet_file.write(response.content)
+            print("Fichier téléchargé")
 
 
-    X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
-    explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
-    del X
+        X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
+        explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
+        del X
 
-    X = pd.read_parquet("assets/df_application_test.parquet", columns=["SK_ID_CURR"])
-    arr_sk_id_curr = X["SK_ID_CURR"].to_list()
-    del X
+        X = pd.read_parquet("assets/df_application_test.parquet", columns=["SK_ID_CURR"])
+        arr_sk_id_curr = X["SK_ID_CURR"].to_list()
+        del X
 
-    api_initialized = True
-    print("Initialisation terminée")
+        api_initialized = True
+        print("Initialisation terminée")
 
-    gc.collect()
+        gc.collect()
 
     def get_explanation(X, sk_id_curr, max_display=50, return_base64=True, show_plot=False):
         if not api_initialized:
