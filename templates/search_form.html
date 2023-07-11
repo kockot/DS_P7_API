@@ -192,7 +192,11 @@
                             for (let j=0; j<data.features_importances[i].hist_json_x.length - 1; j++) {
                                 x.push(`${data.features_importances[i].hist_json_x[j]} - ${data.features_importances[i].hist_json_x[j+1]}`);
                                 if (data.features_importances[i].value>=data.features_importances[i].hist_json_x[j] &&
-                                    data.features_importances[i].value<data.features_importances[i].hist_json_x[j+1]) {
+                                    (
+                                        (j < data.features_importances[i].hist_json_x.length - 2 &&  data.features_importances[i].value<data.features_importances[i].hist_json_x[j+1]) ||
+                                        (j == data.features_importances[i].hist_json_x.length - 2 &&  data.features_importances[i].value<=data.features_importances[i].hist_json_x[j+1])
+                                    )
+                                ) {
                                     colors.push("#ff0000");
                                 } else {
                                     colors.push("#0000FF");
