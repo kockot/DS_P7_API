@@ -47,32 +47,35 @@
         </div>
         <div class="d-none" id="results">
             <div class="row"><div id="conclusion"></div></div>
-            <div class="row"><h2 class="text-center">Répartition des probabilités</h2></div>
-            <div class="row">
-                <div class="d-flex justify-content-between">
-                    <span>Probabilité d'accord</span>
-                    <span>Probabilité de refus</span>
-                </div>
+            <div class="row p-3"><h2 class="text-center">Répartition des probabilités</h2></div>
+            <div class="row" style="position: relative;">
+                <div class="w-100 text-start">
+                    <span class="text-success">Probabilité d'accord</span>
+               </div>
                 <div class="d-flex w-100 ">
                     <div class="flex-fill bg-success text-white text-start" id="conclusion_perc_0">&nbsp;</div>
                     <div class="flex-fill bg-danger text-white text-end" id="conclusion_perc_1">&nbsp;</div>
                 </div>
-                <div style="width:1px; position: absolute; left: 49%; border-left: solid 1px white;">&nbsp;</div>
+
+                <div class="w-100 text-end">
+                    <span class="text-danger">Probabilité de refus</span>
+                </div>
+
+                <div style="height: 100%; width:1px; position: absolute; left: 49%; border-left: solid 1px black;">&nbsp;</div>
             </div>
-            <div class="row"><h2 class="text-center">Explication</h2></div>
-            <div class="row">
+            <div class="row p-3">
                 <ul class="nav nav-tabs">
                   <li class="nav-item">
                     <a
                         class="nav-link active" data-bs-toggle="tab" role="tab"
                         aria-controls="expl_indiv" aria-selected="false"
-                        href="#expl_indiv">Explication individuelle</a>
+                        href="#expl_indiv">Explication</a>
                   </li>
                   <li class="nav-item">
                     <a
                         class="nav-link" data-bs-toggle="tab" role="tab"
                         aria-controls="pos_indiv" aria-selected="false"
-                        href="#pos_indiv">Positionnement individuel</a>
+                        href="#pos_indiv">Positionnement</a>
                   </li>
                 </ul>
 
@@ -85,7 +88,7 @@
                         ria-labelledby="expl_indiv"
                     >
                         <div class="text-center">
-                            <img id="explanation" src="">
+                            <img id="explanation" class="img-fluid"  src="">
                         </div>
                     </div>
 
@@ -148,7 +151,6 @@
                 return;
             } 
 
-            document.getElementById("results").classList.remove("d-none");
             let csrf_token = "{{ csrf_token() }}";
             let payload = {
                 "csrf_token": csrf_token,
@@ -227,10 +229,9 @@
                                 responsive:true
                             };
                             let d = [trace1];
-                            Plotly.newPlot(`div-feat_importance_${i}`, d, layout);
+                            Plotly.newPlot(`div-feat_importance_${i}`, d, layout, {responsive: true});
 
                         }
-
                         document.getElementById("results").classList.remove("d-none");
                         setTimeout(function() { waitModal.hide(); });
 
