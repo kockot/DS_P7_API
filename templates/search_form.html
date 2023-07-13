@@ -181,9 +181,13 @@
                         document.getElementById("conclusion_perc_1").innerText = data.conclusion_proba[1];
                         document.getElementById("explanation").src = "data:image/png;base64, " + data.image;
 
+                        document.querySelectorAll(".div-feat_importance-div").forEach(e => {
+                            e.remove();
+                        });
+
                         let html = "";
                         for(let i=0; i<data.features_importances.length; i++) {
-                            html += `<div class="col col-md-6" id="div-feat_importance_${i}"></div>`
+                            html += `<div class="col col-md-6 div-feat_importance-div" id="div-feat_importance_${i}"></div>`
                         }
                         document.getElementById("details_distrib").innerHTML = html;
 
@@ -225,12 +229,11 @@
                                     gridwidth: 2
                                 },
                                 bargap :0.0,
-                                width: "100%",
+                                //width: "100%",
                                 responsive:true
                             };
                             let d = [trace1];
                             Plotly.newPlot(`div-feat_importance_${i}`, d, layout, {responsive: true});
-
                         }
                         document.getElementById("results").classList.remove("d-none");
                         setTimeout(function() { waitModal.hide(); });
