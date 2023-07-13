@@ -151,6 +151,8 @@
                 return;
             } 
 
+            document.querySelector("a[href='#expl_indiv']").click();
+
             let csrf_token = "{{ csrf_token() }}";
             let payload = {
                 "csrf_token": csrf_token,
