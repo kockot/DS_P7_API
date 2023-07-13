@@ -1,4 +1,4 @@
-artifact_path: xgb_1
+artifact_path: best_estimator
 flavors:
   python_function:
     env:
@@ -12,8 +12,15 @@ flavors:
     code: null
     pickled_model: model.pkl
     serialization_format: cloudpickle
-    sklearn_version: 1.2.2
-mlflow_version: 2.4.1
-model_uuid: 87437e7d3c0944cda98cea5b08f7ba14
-run_id: 2ad9c0a6e47a4d61bf0a6ed746ed9c11
-utc_time_created: '2023-06-27 07:08:53.897548'
+    sklearn_version: 1.3.0
+mlflow_version: 2.4.2
+model_uuid: c21176a93bcd4d2fbab37433438f8346
+run_id: 111380cf59d34cf7acaebea10d1e32fa
+saved_input_example_info:
+  artifact_path: input_example.json
+  format: tf-serving
+  type: ndarray
+signature:
+  inputs: '[{"type": "tensor", "tensor-spec": {"dtype": "object", "shape": [-1, 512]}}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+utc_time_created: '2023-07-12 11:00:22.721142'
