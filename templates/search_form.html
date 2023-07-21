@@ -170,12 +170,10 @@
 
             document.querySelector("a[href='#expl_indiv']").click();
 
-            let csrf_token = "{{ csrf_token() }}";
             let payload = {
-                "csrf_token": csrf_token,
                 "max_display": document.getElementById("max_display").value
             };
-            let header = {   'content-type': 'application/json','accept': 'application/json',"X-CSRFToken": csrf_token}
+            let header = {   'content-type': 'application/json','accept': 'application/json'}
             waitModal.show();
             fetch(
                 "/predict2/"+document.getElementById("sk_id_curr").value.trim(), 
@@ -282,11 +280,9 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            let csrf_token = "{{ csrf_token() }}";
             let payload = {
-                "csrf_token": csrf_token
             };
-            let header = {   'content-type': 'application/json','accept': 'application/json',"X-CSRFToken": csrf_token}
+            let header = {   'content-type': 'application/json','accept': 'application/json'}
 
             fetch(
                 "/sk_id_curr", 
