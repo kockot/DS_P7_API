@@ -19,9 +19,10 @@ def client():
 
 def images_are_the_same(file1_name, img2_str):
     a = cv2.imread(file1_name)
-
+    print(f"in images_are_the_same, file 2 has size={a.shape}")
     nparr = np.fromstring(img2_str, np.uint8)
     b = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+    print(f"in images_are_the_same, file 2 has size={b.shape}")
 
     difference = cv2.subtract(a, b)    
     return not np.any(difference)
