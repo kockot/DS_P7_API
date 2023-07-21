@@ -8,7 +8,6 @@ import pickle
 import shap
 import requests
 import os
-from flask_wtf.csrf import CSRFProtect
 import json
 import orjson
 import gc
@@ -45,12 +44,8 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
         SECRET_KEY = os.urandom(32)
         api.config['SECRET_KEY'] = SECRET_KEY
-        api.config['WTF_CSRF_SECRET_KEY'] = SECRET_KEY
 
         api.config["TEMPLATES_AUTO_RELOAD"] = True
-
-        csrf = CSRFProtect()
-        csrf.init_app(api)
 
         api_initialized = False
         model = None
@@ -226,7 +221,6 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
 
     @api.route("/health")
-    @csrf.exempt
     def health():
         return f"api_initialized={api_initialized}"
 
@@ -250,7 +244,6 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
 
     @api.route('/predict/<sk_id_curr>', methods = ['GET'])
-    @csrf.exempt
     def predict(sk_id_curr):
         if api_initialized==False:
             return {
@@ -299,7 +292,6 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
 
     @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
-    @csrf.exempt
     def predict_POST(sk_id_curr):
         if api_initialized==False:
             return {
