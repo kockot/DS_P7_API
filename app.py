@@ -114,7 +114,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         arr_sk_id_curr = X["SK_ID_CURR"].to_list()
 
         print("Création des données globales pour SHAP")
-        X_shap_global = X.sample(500)
+        X_shap_global = X.sample(200)
         del X
 
         explainer = shap.TreeExplainer(model)
