@@ -71,9 +71,24 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             print("Fichier de modèle téléchargé")
 
 
-        _model = pickle.load(open("assets/model.pkl", "rb"))
-        model = _model.best_estimator_.steps[3][1]
-        imputer = _model.best_estimator_.steps[0][1]
+        model = pickle.load(open("assets/model.pkl", "rb"))
+
+        if not os.path.exists("assets/imputer.pkl"):
+            LOGIN = os.environ.get("parquet_get_login")
+            assert LOGIN is not None
+            PASSWORD = os.environ.get("parquet_get_password")
+            assert PASSWORD is not None
+            URL = os.environ.get("parquet_get_url")
+            assert URL is not None
+            ls = URL.rfind("/")
+            url_model = URL[0:ls]+"/imputer.pkl"
+            print("Téléchargement du fichier imputer")
+            response = requests.get(url = url_model, auth=(LOGIN,PASSWORD))
+            with open("assets/imputer.pkl", "wb") as imputer_file:
+                imputer_file.write(response.content)
+            print("Fichier imputer téléchargé")
+
+        imputer = pickle.load(open("assets/imputer.pkl", "rb"))
 
         SECURITY_TOKEN = os.environ.get("security_token")
         assert SECURITY_TOKEN is not None
