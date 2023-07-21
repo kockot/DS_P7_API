@@ -61,15 +61,21 @@
                     <span class="text-danger">Probabilité de refus</span>
                 </div>
 
-                <div style="height: 100%; width:1px; position: absolute; left: 49%; border-left: solid 1px black;">&nbsp;</div>
+                <div style="height: 100%; width:1px; position: absolute; left: 84%; border-left: solid 1px black;">&nbsp;</div>
             </div>
             <div class="row p-3">
                 <ul class="nav nav-tabs">
                   <li class="nav-item">
                     <a
                         class="nav-link active" data-bs-toggle="tab" role="tab"
-                        aria-controls="expl_indiv" aria-selected="false"
-                        href="#expl_indiv">Explication</a>
+                        aria-controls="expl_indiv" aria-selected="true"
+                        href="#expl_indiv">Explication individuelle</a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                        class="nav-link" data-bs-toggle="tab" role="tab"
+                        aria-controls="expl_glob" aria-selected="false"
+                        href="#expl_glob">Explication globale</a>
                   </li>
                   <li class="nav-item">
                     <a
@@ -85,7 +91,7 @@
                         class="tab-pane fade show active"
                         id="expl_indiv"
                         role="tabpanel"
-                        ria-labelledby="expl_indiv"
+                        aria-labelledby="expl_indiv"
                     >
                         <div class="text-center">
                             <img id="explanation" class="img-fluid"  src="">
@@ -93,10 +99,21 @@
                     </div>
 
                     <div
-                        class="tab-pane fade show"
+                        class="tab-pane fade"
+                        id="expl_glob"
+                        role="tabpanel"
+                        aria-labelledby="expl_glob"
+                    >
+                        <div class="text-center">
+                            <img id="explanation_glob" class="img-fluid"  src="">
+                        </div>
+                    </div>
+
+                    <div
+                        class="tab-pane fade"
                         id="pos_indiv"
                         role="tabpanel"
-                        ria-labelledby="pos_indiv"
+                        aria-labelledby="pos_indiv"
                     >
                         <div id="details_distrib" class="row">
 
@@ -182,6 +199,7 @@
                         document.getElementById("conclusion_perc_1").style.width = `${100*data.conclusion_proba[1]}%`;
                         document.getElementById("conclusion_perc_1").innerText = data.conclusion_proba[1];
                         document.getElementById("explanation").src = "data:image/png;base64, " + data.image;
+                        document.getElementById("explanation_glob").src = "data:image/png;base64, " + data.global_image;
 
                         document.querySelectorAll(".div-feat_importance-div").forEach(e => {
                             e.remove();
@@ -256,6 +274,7 @@
             document.getElementById("conclusion_perc_0").innerText = "";
             document.getElementById("conclusion_perc_1").innerText = "";
             document.getElementById("explanation").src = "";
+            document.getElementById("explanation_glob").src = "";
             document.getElementById("results").classList.add("d-none");
             document.getElementById("sk_id_curr").value = "";
             document.getElementById("max_display").value = 25;

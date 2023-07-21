@@ -1,5 +1,6 @@
 mlruns
 .ipynb_checkpoints
 assets/df_application_test.parquet
+assets/*.png
 .env
 

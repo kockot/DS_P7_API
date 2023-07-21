@@ -65,27 +65,27 @@ def test_non_numeric_sk_id_curr(client):
 def test_application_credit_accepted(client):
     response = client.get("/predict/100038?max_display=50", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
     data = json.loads(response.data)
+    if False:
+        f = open("tests/images/100038.png", "wb")
+        f.write(base64.decodebytes(bytes(data["image"], 'utf-8')))
+        f.close()
     assert data["success"] == True
     assert data["conclusion"] == 1
     assert images_are_the_same("tests/images/100038.png", base64.decodebytes(bytes(data["image"], 'utf-8')))
 
-    
-    #f = open("tests/images/100038.png", "wb")
-    #f.write(base64.decodebytes(bytes(data["image"], 'utf-8')))
-    #f.close()
-    
-
 def test_application_credit_refused(client):
     response = client.get("/predict/456122?max_display=200", headers={"Authorization": f"Bearer {SECURITY_TOKEN}"})
     data = json.loads(response.data)
+    if False:
+        f = open("tests/images/456122.png", "wb")
+        f.write(base64.decodebytes(bytes(data["image"], 'utf-8')))
+        f.close()
+
     assert data["success"] == True
     assert data["conclusion"] == 0
     assert images_are_the_same("tests/images/456122.png", base64.decodebytes(bytes(data["image"], 'utf-8')))
 
     
-    #f = open("tests/images/456122.png", "wb")
-    #f.write(base64.decodebytes(bytes(data["image"], 'utf-8')))
-    #f.close()
 
 def test_security_token_not_provided(client):
     response = client.get("/predict/456122?max_display=200")

@@ -12,6 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 import json
 import orjson
 import gc
+import copy
 
 def get_df_feature_importances_shap_values(shap_values, features):
     '''
@@ -24,9 +25,9 @@ def get_df_feature_importances_shap_values(shap_values, features):
     signs = []
     for i in range(shap_values.values.shape[1]):
         importances.append(np.mean(np.abs(shap_values.values[:, i])))
-        if shap_values.values[:, i]==0:
+        if shap_values.values[:, i][0][0]==0:
             signs.append(0)
-        elif shap_values.values[:, i]>0:
+        elif shap_values.values[:, i][0][0]>0:
             signs.append(1)
         else:
             signs.append(-1)
@@ -54,11 +55,14 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         api_initialized = False
         model = None
         X = None
+        X_shap_global = None
 
-        threshold = 0.49
+        threshold = 0.16
 
         print("Initialisation débutée")
-        model = pickle.load(open("xgb_1/model.pkl", "rb"))
+        _model = pickle.load(open("assets/model.pkl", "rb"))
+        model = _model.best_estimator_.steps[3][1]
+        imputer = _model.best_estimator_.steps[0][1]
 
         SECURITY_TOKEN = os.environ.get("security_token")
         assert SECURITY_TOKEN is not None
@@ -80,13 +84,20 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             print("Fichier téléchargé")
 
 
-        X = pd.read_parquet("assets/df_application_test.parquet", filters=[("SK_ID_CURR", "=", 100001)])
-        explainer = shap.TreeExplainer(model, max_evals=1000, feature_names=X.drop(columns="SK_ID_CURR").columns)
+        X = pd.read_parquet("assets/df_application_test.parquet")
+        arr_sk_id_curr = X["SK_ID_CURR"].to_list()
+
+        print("Création des données globales pour SHAP")
+        X_shap_global = X.sample(500)
         del X
 
-        X = pd.read_parquet("assets/df_application_test.parquet", columns=["SK_ID_CURR"])
-        arr_sk_id_curr = X["SK_ID_CURR"].to_list()
-        del X
+        explainer = shap.TreeExplainer(model)
+        print("Calcul des valeurs Shapley globales")
+        shap_values_global = explainer(X_shap_global.drop(columns=["SK_ID_CURR"]))
+        print("Génération des données pour l'explication globale du modèle")
+        shap_values_global_copy = copy.deepcopy(shap_values_global)
+        shap_values_global_copy.values = shap_values_global_copy.values[:, :, 1]
+        shap_values_global_copy.base_values = shap_values_global_copy.base_values[:, 1]
 
         api_initialized = True
         print("Initialisation terminée")
@@ -109,27 +120,60 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             }
     
         ind = ind[0]
-        X_shap = np.array(X.iloc[ind:ind+1].drop(columns="SK_ID_CURR"), dtype=float)
-        shap_values = explainer(X_shap)
-        vals = np.abs(shap_values.values).mean(0)
+        sk_id_curr = X.iloc[ind:ind+1]["SK_ID_CURR"][0]
+        X_sample = X_shap_global.copy(deep=True)
+        if X_sample.loc[X_sample["SK_ID_CURR"] == sk_id_curr].shape[0] == 0:
+            X_sample = pd.concat([X.loc[X["SK_ID_CURR"] == sk_id_curr], X_sample])
+
+        X_sample.reset_index(drop=True, inplace=True)
+        idx = X_sample.loc[X_sample["SK_ID_CURR"] == sk_id_curr].index[0]
+        X_sample.drop(columns=["SK_ID_CURR"], inplace=True)
+        shap_values = explainer(imputer.transform(X_sample))
+
+        vals = np.abs(shap_values.values[0]).mean(0)
         feature_importance = pd.DataFrame(
-            list(zip(X.columns, vals)),
+            list(zip(X_sample.columns, vals)),
             columns=['col_name', 'feature_importance_vals']
         )
         feature_importance.sort_values(by=['feature_importance_vals'], ascending=False, inplace=True)
 
 
         if show_plot:
-            shap.plots.waterfall(shap_values[0], max_display=max_display, show=True)
+            shap.plots._waterfall.waterfall_legacy(
+                explainer.expected_value[1],
+                shap_values[idx].values[:, 1],
+                feature_names=X_sample.columns,
+                max_display=max_display,
+                show=True
+            )
+            #shap.plots.waterfall(shap_values[0], max_display=max_display, show=True)
             
         if return_base64:
+            global_exp_img = f"assets/global_explanation_{max_display}.png"
+            if not os.path.exists(global_exp_img):
+                pyplot.clf()
+                shap.summary_plot(shap_values_global_copy, max_display=max_display, show=False)
+                pyplot.savefig(global_exp_img, format='png')
+            with open(global_exp_img, "rb") as global_img_f:
+                global_expl_contents = base64.encodebytes(global_img_f.read()).decode('utf-8')
+
+
+
             pyplot.clf()
-            shap.plots.waterfall(shap_values[0], max_display=max_display, show=False)
+            shap.plots._waterfall.waterfall_legacy(
+                explainer.expected_value[1],
+                shap_values[idx].values[:, 1],
+                feature_names=X_sample.columns,
+                max_display=max_display+1,
+                show=False
+            )
+
             image = BytesIO()
-            pyplot.savefig(image, format='png', bbox_inches='tight')
+            pyplot.savefig(image, format='png',bbox_inches='tight')
             ret = {
                 "success": True,
                 "image": base64.encodebytes(image.getvalue()).decode('utf-8'),
+                "global_image": global_expl_contents,
                 "features_importances": []
             }
 

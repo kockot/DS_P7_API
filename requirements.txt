@@ -13,3 +13,5 @@ gunicorn==20.1.0
 requests==2.31.0
 Flask-WTF==1.1.1
 orjson==3.9.2
+lightgbm==4.0.0
+imbalanced-learn==0.11.0
