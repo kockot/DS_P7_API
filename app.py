@@ -60,6 +60,22 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         threshold = 0.16
 
         print("Initialisation débutée")
+        if not os.path.exists("assets/model.pkl"):
+            LOGIN = os.environ.get("parquet_get_login")
+            assert LOGIN is not None
+            PASSWORD = os.environ.get("parquet_get_password")
+            assert PASSWORD is not None
+            URL = os.environ.get("parquet_get_url")
+            assert URL is not None
+            ls = URL.rfind("/")
+            url_model = URL[0:ls]+"/model.pkl"
+            print("Téléchargement du fichier de modèle")
+            response = requests.get(url = url_model, auth=(LOGIN,PASSWORD))
+            with open("assets/model.pkl", "wb") as model_file:
+                model_file.write(response.content)
+            print("Fichier de modèle téléchargé")
+
+
         _model = pickle.load(open("assets/model.pkl", "rb"))
         model = _model.best_estimator_.steps[3][1]
         imputer = _model.best_estimator_.steps[0][1]
@@ -81,7 +97,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
             response = requests.get(url = URL, auth=(LOGIN,PASSWORD))
             with open("assets/df_application_test.parquet", "wb") as parquet_file:
                 parquet_file.write(response.content)
-            print("Fichier téléchargé")
+            print("Fichier parquet téléchargé")
 
 
         X = pd.read_parquet("assets/df_application_test.parquet")
