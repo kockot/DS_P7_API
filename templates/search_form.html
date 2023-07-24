@@ -205,7 +205,16 @@
 
                         let html = "";
                         for(let i=0; i<data.features_importances.length; i++) {
-                            html += `<div class="col col-md-6 div-feat_importance-div" id="div-feat_importance_${i}"></div>`
+                            html += `
+<div class="col col-md-6 p-1">
+                            <div class="card ">
+                                <div class="card-body">
+                                    <div class=" div-feat_importance-div" id="div-feat_importance_${i}"></div>
+                                    <p class="card-text">${data.features_importances[i].description}</p>
+                                </div>
+                            </div>
+</div>
+                            `;
                         }
                         document.getElementById("details_distrib").innerHTML = html;
 

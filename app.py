@@ -125,6 +125,10 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         shap_values_global_copy.values = shap_values_global_copy.values[:, :, 1]
         shap_values_global_copy.base_values = shap_values_global_copy.base_values[:, 1]
 
+        columns_description = {}
+        with open("assets/cols_description.json", "r") as f:
+            columns_description = json.load(f)
+
         api_initialized = True
         print("Initialisation terminée")
 
@@ -172,8 +176,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
                 max_display=max_display,
                 show=True
             )
-            #shap.plots.waterfall(shap_values[0], max_display=max_display, show=True)
-            
+
         if return_base64:
             global_exp_img = f"assets/global_explanation_{max_display}.png"
             if not os.path.exists(global_exp_img):
@@ -210,12 +213,18 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
                 fname = f"""assets/hist_json/{line["feature_name"].replace("/", "_")}.json"""
                 with open(fname) as json_f:
                     decoded = json.load(json_f)
+                    feature_name = str(line["feature_name"])
+                    if feature_name in columns_description.keys():
+                        feature_description = columns_description[feature_name]
+                    else:
+                        feature_description = ""
                     ret["features_importances"].append({
-                        "name": str(line["feature_name"]),
+                        "name": feature_name,
                         "value": float(X.loc[ind, line["feature_name"]]),
                         "contribution": float(line["importance"] * line["sign"]),
                         "hist_json_y": list(float(y) for y in decoded[0]),
                         "hist_json_x": list(float(x) for x in decoded[1]),
+                        "description": feature_description
                     })
             return ret
 
