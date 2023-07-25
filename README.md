@@ -2,6 +2,8 @@
 
 Ce projet est un exemple d'API construite autour du modèle retenu dans le [projet 7](../DataScience_Training/tree/main/projet7) .
 
+Il fournit aussi un frontend basé sur des pages HTML statiques qui interrogent l'API.
+
 Il nécessite les variables d'environnement suivantes:
 - security_token : code de sécurité partagé avec le frontend StreamLit
 - parquet_get_url : URL du fichier des données de production (df_application_test.parquet)
@@ -106,7 +108,7 @@ pytest -v tests/
 ```
 pip install -r requirements.txt
 
-# Next is the security token shared with the Streamlit frontend ap
+# Next is the security token shared with the Streamlit frontend app
 
 export security_token=xxx
 
