@@ -42,7 +42,7 @@ Il fournit les services sous forme de endpoints web:
     >          "contribution": float(contribution de la feature à l'explication locale),
     >          "hist_json_y": array(float(distribution de histogramme de répartition de la feature au niveau global selon l'axe y))
     >          "hist_json_x": array(float(distribution de histogramme de répartition de la feature au niveau global selon l'axe x))
-    > 
+    >      }) 
     > }
 - /login (POST): permet d'obtenir un token JWT pour authentifier un utilisateur
   En entrée sont attendus les paramètres:
@@ -86,7 +86,7 @@ Il fournit les services sous forme de endpoints web:
     >          "contribution": float(contribution de la feature à l'explication locale),
     >          "hist_json_y": array(float(distribution de histogramme de répartition de la feature au niveau global selon l'axe y))
     >          "hist_json_x": array(float(distribution de histogramme de répartition de la feature au niveau global selon l'axe x))
-    > 
+    >       })
     > }
       
 # Installation des prérequis
