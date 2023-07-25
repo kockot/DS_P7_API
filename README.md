@@ -12,13 +12,13 @@ Il fournit les services sous forme de endpoints web:
 - /predict/<sk_id_curr> (GET): retourne les informations de prédictions concernant la demande identifiée par \<sk_id_curr\> dans l'adresse fournie.
   En entrée, sont attendus:
   - dans l'entête de la requête, une authentification via une ligne
-> **'Authorization': 'Bearer {security_token}'**
-> 
-> avec {security_token} à remplacer par la valeur de la variable d'environnement security_token
->
-> **paramètre max_display en option**
->
-> permet de définir le nombre de features les plus importantes à expliquer
+  > **'Authorization': 'Bearer {security_token}'**
+  > avec {security_token} à remplacer par la valeur de la variable d'environnement security_token
+  >
+  - optionnellement, en tant que paramètre HTTP GET:
+  > **paramètre max_display en option**
+  >
+  > permet de définir le nombre de features les plus importantes à expliquer (25 par défaut)
     
   Les informations retournées sont fournies en tant que dictionnaire au format JSON, contenant toujours une entrée avec la clé "success"
     - en cas d'erreur, l'entrée "success" aura la valeur False et une entrée avec la clé "message" fournira une information sur l'erreur
