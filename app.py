@@ -277,6 +277,10 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         }
 
     
+    @api.route("/")
+    def index():
+        return render_template('index.html')
+
     @api.route("/application")
     def application():
         return render_template('search_form.html')
