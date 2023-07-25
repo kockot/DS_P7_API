@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+
 import pandas as pd
 import numpy as np
 from io import BytesIO
@@ -46,6 +48,9 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         api.config['SECRET_KEY'] = SECRET_KEY
 
         api.config["TEMPLATES_AUTO_RELOAD"] = True
+
+        api.config["JWT_SECRET_KEY"] = SECRET_KEY
+        jwt = JWTManager(api)
 
         api_initialized = False
         model = None
@@ -249,6 +254,29 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
         return f"api_initialized={api_initialized}"
 
 
+    @api.route("/login", methods=["GET"])
+    def login_form():
+        return render_template('login.html')
+
+    # Create a route to authenticate your users and return JWTs. The
+    # create_access_token() function is used to actually generate the JWT.
+    @api.route("/login", methods=["POST"])
+    def login_check():
+        username = request.json.get("username", None)
+        password = request.json.get("password", None)
+        if username != "test" or password != "test":
+            return {
+                "success": False,
+                "message": "Mauvais nom d'utilisateur ou mot de passe"
+            }
+    
+        access_token = create_access_token(identity=username)
+        return {
+            "success": True,
+            "access_token": access_token
+        }
+
+    
     @api.route("/application")
     def application():
         return render_template('search_form.html')
@@ -316,6 +344,7 @@ def create_app(config={"TESTING": False, "TEMPLATES_AUTO_RELOAD": True}):
 
 
     @api.route('/predict2/<sk_id_curr>', methods = ['POST'])
+    @jwt_required()
     def predict_POST(sk_id_curr):
         if api_initialized==False:
             return {

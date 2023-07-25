@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  </head>
+<body>
+
+    <div class="login-page bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                  <h3 class="mb-3">Dashboard Demande de Crédit</h3>
+                    <div class="bg-white shadow rounded">
+                        <div class="row">
+                            <div class="col-md-7 pe-0">
+                                <div class="form-left h-100 py-5 px-5">
+                                    <form action="" class="row g-4">
+                                            <div class="col-12">
+                                                <label>Nom d'utilisateur<span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <div class="input-group-text"><i class="bi bi-person-fill"></i></div>
+                                                    <input type="text" id="login" class="form-control" placeholder="Entrez le nom d'utilisateur">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label>Mot de passe<span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <div class="input-group-text"><i class="bi bi-lock-fill"></i></div>
+                                                    <input type="password" id="password" class="form-control" placeholder="Entrez le mot de passe">
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-12">
+                                                <button type="button" id="connect_btn" class="btn px-4 float-end mt-4" style="background-color: #7451eb;color: white;">Connexion</button>
+                                            </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-md-5 ps-0 d-none d-md-block">
+                                <div class="form-right h-100 text-white text-center pt-5" style="background: #7451eb;">
+                                    <img class="img-fluid" src="data:image/png;base64,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">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-end text-secondary mt-3">Projet 7 - Nordine OURAL</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal " id="wait_modal" data-bs-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div style="width: 4rem; height: 4rem;">&nbsp;</div>
+                    <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
+                    </div>
+                    <div style="width: 4rem; height: 4rem;">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script>
+        const waitModal = new bootstrap.Modal('#wait_modal');
+        document.getElementById("connect_btn").addEventListener("click", function() {
+            let username = document.getElementById("login").value.trim();
+            if (username=="") {
+                alert("Vous devez entrer le nom d'utilisateur !");
+                return;
+            }
+            let password = document.getElementById("password").value.trim();
+            if (password=="") {
+                alert("Vous devez entrer le mot de passe !");
+                return;
+            }
+
+            waitModal.show();
+            fetch(
+                "/login",
+                {
+                    method: "POST",
+                    headers: {
+                        'Content-type':'application/json',
+                        'Accept':'application/json'
+                    } ,
+                    body:JSON.stringify({username: username, password: password}),
+                    credentials: 'include',
+                }
+            ).then(function(res) {
+                return res.json();
+            }).then(function(data) {
+                setTimeout(function() { waitModal.hide(); });
+                if (data.success) {
+                    localStorage.setItem("jwt-token", data.access_token);
+                    location.href = "/application";
+//                    alert("success, token=" + data.access_token)
+                } else {
+                    alert(data.message);
+                }
+            }).catch(err => {
+                alert(err);
+                setTimeout(function() { waitModal.hide(); });
+            });
+
+
+        })
+    </script>
+</body>
+</html>
